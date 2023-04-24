@@ -18,141 +18,161 @@
 
 
 // these constants won't change:
-const int redPin = 9;  // LED connected to digital pin 13
-const int bluePin = 11;
-const int greenPin = 10;
 
-int redVal = 0;
-int blueVal = 0;
-int greenVal = 0;
-int colorNext = 0; //0 Blue, 1 Red, 3, Green
-int waitBuffer = 50;
 
-const int knockSensor = A0;  // the piezo is connected to analog pin 0
-const int threshold = 100;   // threshold value to decide when the detected sound is a knock or not
+const int sensorNum = 2; //number of sensor&LED set
+const int LEDPins[sensorNum][3] = {{8, 9, 10}, {5, 6, 7}}; //led pin ports
+
+int LEDvalue[sensorNum][3]; //0 red, 1 green, 2 blue
+int colorNext[sensorNum]; //0 Blue, 1 Red, 2 Green
+int waitBuffer[sensorNum];
+
+
+const int knockSensor[sensorNum] = {A0, A1};  // the piezo is connected to analog pin 0
+
+const int threshold = 25;   // threshold value to decide when the detected sound is a knock or not
 int flag = 0;
 
 // these variables will change:
-int sensorReading = 0;  // variable to store the value read from the sensor pin
+int sensorReading[sensorNum];  // variable to store the value read from the sensor pin
 int ledState = LOW;     // variable used to store the last LED status, to toggle the light
 int color = 8;
-void ledLight(int pin);
 
-byte arbitraryCode = 97; //music 
 
-int state = 0; // 0 off, 1 disco on
+byte arbitraryCode[sensorNum] = {97, 98}; //music 
+//byte arbitraryCode2 = 98;
+
+//byte arbitraryCode[sensorNum] = {97, 98};
+
+int state[sensorNum]; // 0 off, 1 disco on
+
+void initialize() {
+  for (int i=0;i<sensorNum;i++){
+    for (int j=0;j<3;j++) {
+      pinMode(LEDPins[i][j], OUTPUT);
+      LEDvalue[i][j] = 0;
+    }
+    colorNext[i] = 0;
+    waitBuffer[i] = 50;
+    state[i] = 0;
+    sensorReading[i] = 0;
+  }
+  //return ;
+}
 
 void setup() {
-  pinMode(redPin, OUTPUT);   // declare the ledPin as as OUTPUT
-  pinMode(bluePin, OUTPUT);  // declare the ledPin as as OUTPUT
-  pinMode(greenPin, OUTPUT);       // declare the ledPin as as OUTPUT
+
+  initialize();
   Serial.begin(9600);         // use the serial port
-  flag = 0;
-  color = 8;
+  
 }
 
 void loop() {
   // read the sensor and store it in the variable sensorReading:
-  int sensorReading = analogRead(knockSensor);
+  for(int i=0;i<sensorNum;i++){
+    sensorReading[i] = analogRead(knockSensor[i]); 
+  }
 
+  for(int i=0;i<sensorNum;i++){
+    if(sensorReading[i] > threshold) {
+      state[i] = 1;
+      Serial.write(arbitraryCode[i]);
+    }
+  }
 
-  if (sensorReading > 5) {  //sense the vibration the light will gradually light up and change color.
-    state = 1;
+  /*if (sensorReading > threshold) {  //sense the vibration the light will gradually light up and change color.
+    state[0] = 1;
     Serial.write(arbitraryCode);
-    // ledLight(RedledPin);
-    // ledLight(Green);
-    // ledLight(BlueledPin);
   } 
-  if (waitBuffer == 0) {
-    state = 0;
-    waitBuffer = 50;
+  if (sensorReading2 > threshold) {  //sense the vibration the light will gradually light up and change color.
+    state[1] = 1;
+    Serial.write(arbitraryCode2);
+    //Serial.write(arbitraryCode);
+
+  } */
+  
+  
+  for (int i=0;i<sensorNum;i++){
+    changeLightStatus(i);
   }
 
-  if (state == 1) {
-    runDisco();
-    
-    waitBuffer -= 1;
-  } else {
-    offDisco();
-  }
-  analogWrite(greenPin, greenVal);
-  analogWrite(redPin, redVal);
-  analogWrite(bluePin, blueVal);
-  // Serial.print("Colors: ");
-  // Serial.print("\n");
-  // Serial.print(redVal);
-  // Serial.print("\n");
-  // Serial.print(blueVal);
-  // Serial.print("\n");
-  // Serial.print(greenVal);
-  // Serial.print("\n");
-  // Serial.print("Wait: ");
-  // Serial.print("\n");
-  // Serial.print(waitBuffer);
-  // Serial.print("\n");
-  // Serial.print("Vib: ");
-  // Serial.print("\n");
-  // Serial.print(sensorReading);
-  // Serial.print("\n");
+  changeLightColor(0);
+  changeLightColor(1);
 
+
+  //for(int i=0;i<sensorNum;i++){
+    Serial.print("Colors1: ");
+    Serial.print("\n");
+    Serial.print(LEDvalue[0][0]);
+    Serial.print("\n");
+    Serial.print(LEDvalue[0][1]);
+    Serial.print("\n");
+    Serial.print(LEDvalue[0][2]);
+    Serial.print("\n");
+
+    Serial.print("Colors2: ");
+    Serial.print("\n");
+    Serial.print(LEDvalue[1][0]);
+    Serial.print("\n");
+    Serial.print(LEDvalue[1][1]);
+    Serial.print("\n");
+    Serial.print(LEDvalue[1][2]);
+    Serial.print("\n");
+  //}
 
   delay(100);  // delay to avoid overloading the serial port buffer
 }
+void changeLightStatus(int idx) { //check light status and wait buffer
+  if(waitBuffer[idx] == 0) {
+    state[idx] = 0;
+    waitBuffer[idx] = 50;
+  }
+  if(state[idx] == 1){
+    runDisco(idx);
+    waitBuffer[idx] -= 1;
+  }
+  else {
+    offDisco(idx);
+  }
+}
+void changeLightColor(int idx) { //analogwrite for led color
+  analogWrite(LEDPins[idx][1], LEDvalue[idx][1]);
+  analogWrite(LEDPins[idx][0], LEDvalue[idx][0]);
+  analogWrite(LEDPins[idx][2], LEDvalue[idx][2]);
+}
 
-// //taper color transition between pins
-// void Color(int pina, int pinb) {
-
-//   for (int i = 255; i >= 0; i--) {
-//     analogWrite(pina, i);
-//     analogWrite(pinb, 255 - i);
-//     delay(10);  // waits 10 ms
-//   }
-// }
-
-void runDisco() {
-  if (colorNext == 0) { //green -> blue
-    greenVal -= 1;
-    blueVal += 1;
-    if (greenVal <= 0 || blueVal >= 255) {
-      colorNext = 1;
-      greenVal = 0;
-      blueVal = 255;
+void runDisco(int idx) { //color changes
+  if (colorNext[idx] == 2) { //green -> blue
+    LEDvalue[idx][1] -= 1; 
+    LEDvalue[idx][2] += 1;
+    if (LEDvalue[idx][1] <= 0 || LEDvalue[idx][2] >= 255) {
+      colorNext[idx] = 1;
+      LEDvalue[idx][1] = 0;
+      LEDvalue[idx][2] = 255;
     }
   }
-  else if (colorNext == 1) { //blue -> red
-    blueVal -= 1;
-    redVal += 1;
-    if (blueVal <= 0 || redVal >= 255) {
-      colorNext = 2;
-      blueVal = 0;
-      redVal = 255;
+  else if (colorNext[idx] == 0) { //blue -> red
+    LEDvalue[idx][2] -= 1;
+    LEDvalue[idx][0] += 1;
+    if (LEDvalue[idx][2] <= 0 || LEDvalue[idx][0] >= 255) {
+      colorNext[idx] = 2;
+      LEDvalue[idx][2] = 0;
+      LEDvalue[idx][0] = 255;
     }
   }
-  else if (colorNext == 2) { //red -> green
-    redVal -= 1;
-    greenVal += 1;
-    if (redVal <= 0 || greenVal >= 255) {
-      colorNext = 0;
-      redVal = 0;
-      greenVal = 255;
+  else if (colorNext[idx] == 1) { //red -> green
+    LEDvalue[idx][0] -= 1;
+    LEDvalue[idx][1] += 1;
+    if (LEDvalue[idx][0] <= 0 || LEDvalue[idx][1] >= 255) {
+      colorNext[idx] = 0;
+      LEDvalue[idx][0] = 0;
+      LEDvalue[idx][1] = 255;
     }
   }
 }
 
-void offDisco() {
-  redVal = 0;
-  greenVal = 0;
-  blueVal = 0;
+void offDisco(int idx) {
+  LEDvalue[idx][0] = 0;
+  LEDvalue[idx][1] = 0;
+  LEDvalue[idx][2] = 0;
 }
-
-// void ledLight(int pin) {
-//   Serial.print(pin);
-//   for (int i = 0; i < 255; i++) {
-//     analogWrite(pin, i);
-//     delay(10);
-//   }
-//   for (int i = 254; i >= 0; i--) {
-//     analogWrite(pin, i);
-//     delay(10);
-//   }
-// }
