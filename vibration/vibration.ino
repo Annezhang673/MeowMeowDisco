@@ -41,6 +41,10 @@ int sensorReading[sensorNum];  // variable to store the value read from the sens
 int ledState = LOW;     // variable used to store the last LED status, to toggle the light
 int color = 8;
 
+int numPanelsActive = 0;
+int motorOnBuffer = 80;
+bool motorOn = false;
+
 
 byte arbitraryCode[sensorNum] = {97, 98}; //music 
 //byte arbitraryCode2 = 98;
@@ -71,6 +75,7 @@ void setup() {
 }
 
 void loop() {
+
   // read the sensor and store it in the variable sensorReading:
   for(int i=0;i<sensorNum;i++){
     sensorReading[i] = analogRead(knockSensor[i]); 
@@ -80,8 +85,25 @@ void loop() {
     if(sensorReading[i] > threshold) {
       state[i] = 1;
       Serial.write(arbitraryCode[i]);
+      numPanelsActive += 1;
     }
   }
+  
+  if (motorOn) {
+    motorOnBuffer -= 1;
+  }
+
+  if (motorOn == false && numPanelsActive > sensorNum/2) {
+    motorOn = true;
+    //turn on motors;
+  } 
+
+  if (motorOnBuffer <= 0) {
+    motorOn = false;
+    motorOnBuffer = 80;
+    // turn off motors;
+  }
+
 
   /*if (sensorReading > threshold) {  //sense the vibration the light will gradually light up and change color.
     state[0] = 1;
@@ -122,7 +144,7 @@ void loop() {
     Serial.print(LEDvalue[1][2]);
     Serial.print("\n");
   //}
-
+  numPanelsActive = 0;
   delay(100);  // delay to avoid overloading the serial port buffer
 }
 void changeLightStatus(int idx) { //check light status and wait buffer
