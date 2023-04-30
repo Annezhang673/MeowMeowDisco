@@ -12,6 +12,7 @@ int switchPin = 7;             //switch to turn the robot on and off
 
 int waitBuffer;
 
+
 void setup() {
   // put your setup code here, to run once:
    pinMode(switchPin, INPUT_PULLUP);   //set this as a pullup to sense whether the switch is flipped
@@ -26,20 +27,25 @@ void setup() {
   pinMode(PWMB, OUTPUT);
 
   Serial.begin(9600); 
+
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println(digitalRead(7));
+
   waitBuffer = 5;
    if (digitalRead(7) == 1) {
      if (waitBuffer != 0) {
+
        Serial.println("here");
       rightMotor(-500);                                //drive the right wheel forward
       leftMotor(500);    
       delay(1000);
+
       waitBuffer-=1;
       Serial.println(waitBuffer);
+
 
                                   //drive the left wheel forward
      } else {

@@ -15,6 +15,10 @@
   by David Cuartielles <http://www.0j0.org>
   modified 30 Aug 2011
   by Tom Igoe
+<<<<<<< HEAD
+=======
+
+>>>>>>> 93f14b8f928e0affc6196c52eb1e04b13f6ffcbd
   This example code is in the public domain.
 
   https://www.arduino.cc/en/Tutorial/BuiltInExamples/Knock
@@ -192,12 +196,15 @@ void runDisco(int idx) { //color changes
       colorNext[idx] = 0;
       LEDvalue[idx][0] = 0;
       LEDvalue[idx][1] = 255;
+
     }
   }
 }
+
 
 void offDisco(int idx) {
   LEDvalue[idx][0] = 0;
   LEDvalue[idx][1] = 0;
   LEDvalue[idx][2] = 0;
 }
+
