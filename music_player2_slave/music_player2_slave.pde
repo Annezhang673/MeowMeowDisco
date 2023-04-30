@@ -21,7 +21,7 @@ void setup()
  
   // Put in the name of your sound file below, and make sure it is in the same directory
   player = minim.loadFile("key01.mp3");
-  player2 = minim.loadFile("key03.mp3");
+  //player2 = minim.loadFile("key03.mp3");
 }
  
 void draw() {
@@ -34,10 +34,10 @@ void draw() {
       player.rewind();
       player.play();
     }
-    if (inByte == arbitraryCode2) {
+    /*if (inByte == arbitraryCode2) {
       //println("play");
       player2.rewind();
       player2.play();
-    }
+    }*/
   }
 }
